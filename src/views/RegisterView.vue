@@ -1,3 +1,3 @@
 <template>
-  <router-view />
+  <h1>Registro</h1>
 </template>

@@ -1,3 +1,3 @@
 <template>
-  <router-view />
+  <h1>Métricas</h1>
 </template>
