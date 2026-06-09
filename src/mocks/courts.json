@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "Cancha Pádel 1",
+    "sport": "Pádel",
+    "club": "MatchPoint Club",
+    "location": "Villa Sarmiento",
+    "price": 12000,
+    "active": true
+  },
+  {
+    "id": 2,
+    "name": "Cancha Tenis 1",
+    "sport": "Tenis",
+    "club": "MatchPoint Club",
+    "location": "Villa Sarmiento",
+    "price": 15000,
+    "active": true
+  }
+]
