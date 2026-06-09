@@ -2,19 +2,17 @@
   <section>
     <h1>Canchas Disponibles</h1>
 
-    <div v-for="court in courtsStore.activeCourts" :key="court.id">
-      <h2>{{ court.name }}</h2>
-      <p>Deporte: {{ court.sport }}</p>
-      <p>Club: {{ court.club }}</p>
-      <p>Ubicación: {{ court.location }}</p>
-      <p>Precio: ${{ court.price }}</p>
-      <hr />
-    </div>
+    <CourtCard
+      v-for="court in courtsStore.activeCourts"
+      :key="court.id"
+      :court="court"
+    />
   </section>
 </template>
 
 <script setup>
 import { useCourtsStore } from '../stores/courts'
+import CourtCard from '../components/CourtCard.vue'
 
 const courtsStore = useCourtsStore()
 </script>
