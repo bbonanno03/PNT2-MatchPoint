@@ -2,20 +2,20 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
-import CatalogView from '../views/CatalogView.vue'
-import LoansView from '../views/LoansView.vue'
-import RulesView from '../views/RulesView.vue'
-import AdminBooksView from '../views/AdminBooksView.vue'
+import CourtsView from '../views/CourtsView.vue'
+import ReservationsView from '../views/ReservationsView.vue'
+import PoliciesView from '../views/PoliciesView.vue'
+import AdminCourtsView from '../views/AdminCourtsView.vue'
 import MetricsView from '../views/MetricsView.vue'
 
 const routes = [
-  { path: '/', redirect: '/catalogo' },
+  { path: '/', redirect: '/canchas' },
   { path: '/login', component: LoginView },
   { path: '/register', component: RegisterView },
-  { path: '/catalogo', component: CatalogView },
-  { path: '/prestamos', component: LoansView },
-  { path: '/reglas', component: RulesView },
-  { path: '/admin/libros', component: AdminBooksView },
+  { path: '/canchas', component: CourtsView },
+  { path: '/reservas', component: ReservationsView },
+  { path: '/politicas', component: PoliciesView },
+  { path: '/admin/canchas', component: AdminCourtsView },
   { path: '/admin/metricas', component: MetricsView }
 ]
 
