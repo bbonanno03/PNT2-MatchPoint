@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
@@ -18,12 +19,23 @@ const routes = [
   { path: '/politicas', component: PoliciesView },
   { path: '/admin/canchas', component: AdminCourtsView },
   { path: '/admin/metricas', component: MetricsView },
-  { path: '/admin/usuarios', component: AdminUsersView }
+  { path: '/admin/usuarios', component: AdminUsersView },
+  { path: '/admin/canchas', component: AdminCourtsView, meta: { requiresAdmin: true } },
+{ path: '/admin/usuarios', component: AdminUsersView, meta: { requiresAdmin: true } },
+{ path: '/admin/metricas', component: MetricsView, meta: { requiresAdmin: true } }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach((to) => {
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    return '/canchas'
+  }
 })
 
 export default router
