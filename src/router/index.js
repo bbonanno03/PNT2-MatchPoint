@@ -7,6 +7,7 @@ import ReservationsView from '../views/ReservationsView.vue'
 import PoliciesView from '../views/PoliciesView.vue'
 import AdminCourtsView from '../views/AdminCourtsView.vue'
 import MetricsView from '../views/MetricsView.vue'
+import AdminUsersView from '../views/AdminUsersView.vue'
 
 const routes = [
   { path: '/', redirect: '/canchas' },
@@ -16,7 +17,8 @@ const routes = [
   { path: '/reservas', component: ReservationsView },
   { path: '/politicas', component: PoliciesView },
   { path: '/admin/canchas', component: AdminCourtsView },
-  { path: '/admin/metricas', component: MetricsView }
+  { path: '/admin/metricas', component: MetricsView },
+  { path: '/admin/usuarios', component: AdminUsersView }
 ]
 
 const router = createRouter({

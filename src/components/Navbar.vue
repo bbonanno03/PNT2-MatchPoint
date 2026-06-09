@@ -6,6 +6,7 @@
     <router-link to="/admin/canchas">Admin</router-link>
     <router-link to="/admin/metricas">Métricas</router-link>
     <router-link to="/login">Login</router-link>
+    <router-link to="/admin/usuarios">Usuarios</router-link>
   </nav>
 </template>
 
