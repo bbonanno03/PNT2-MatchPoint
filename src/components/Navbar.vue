@@ -1,3 +1,18 @@
+<script setup>
+
+import { useAuthStore } from '../stores/auth'
+import {useRouter} from 'vue-router'
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+function handleLogout() {
+  authStore.logout();
+  router.push('/login');
+}
+
+</script>
+
 <template>
   <nav class="navbar">
     <router-link to="/canchas">Canchas</router-link>
@@ -15,17 +30,11 @@
       Usuario: {{ authStore.user.name }} - {{ authStore.user.role }}
     </span>
 
-    <button v-if="authStore.isAuthenticated" @click="authStore.logout()">
+    <button v-if="authStore.isAuthenticated" @click="handleLogout">
       Cerrar sesión
     </button>
   </nav>
 </template>
-
-<script setup>
-import { useAuthStore } from '../stores/auth'
-
-const authStore = useAuthStore()
-</script>
 
 <style scoped>
 .navbar {
