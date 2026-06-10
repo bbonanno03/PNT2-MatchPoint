@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": 101,
+    "userId": 2,
+    "courtName": "Cancha 1 - Fútbol 5",
+    "clubName": "MatchPoint Palermo",
+    "date": "2026-06-12",
+    "time": "19:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 102,
+    "userId": 1,
+    "courtName": "Cancha 3 - Fútbol 7",
+    "clubName": "MatchPoint Palermo",
+    "date": "2026-06-15",
+    "time": "21:00",
+    "status": "pending"
+  },
+  {
+    "id": 103,
+    "userId": 99,
+    "courtName": "Cancha Central - Pádel",
+    "clubName": "MatchPoint Costanera",
+    "date": "2026-06-13",
+    "time": "18:00",
+    "status": "confirmed"
+  }
+]
