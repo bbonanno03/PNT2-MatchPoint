@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia'
+import { supabase } from '../services/supabase'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null
+    user: null,
+    error: null,
+    loading: false
   }),
 
   getters: {
@@ -29,13 +32,47 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    register(name, email, password) {
+    async register(name, email, password) {
+      this.loading = true
+      this.error = null
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password
+      })
+
+      if (error) {
+        this.error = error.message
+        this.loading = false
+        return
+      }
+
+      const userId = data.user.id
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          name,
+          email,
+          role: 'player',
+          active: true
+        })
+
+      if (profileError) {
+        this.error = profileError.message
+        this.loading = false
+        return
+      }
+
       this.user = {
-        id: Date.now(),
+        id: userId,
         name,
         email,
         role: 'player'
       }
+
+      this.loading = false
     },
 
     logout() {
