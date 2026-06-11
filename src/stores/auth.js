@@ -14,22 +14,50 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    login(email, password) {
-      if (email === 'admin@matchpoint.com') {
-        this.user = {
-          id: 1,
-          name: 'Administrador',
-          email,
-          role: 'admin'
-        }
-      } else {
-        this.user = {
-          id: 2,
-          name: 'Jugador',
-          email,
-          role: 'player'
-        }
+    async login(email, password) {
+      this.loading = true
+      this.error = null
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (error) {
+        this.error = error.message
+        this.loading = false
+        return false
       }
+
+      const userId = data.user.id
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, name, email, role, active')
+        .eq('id', userId)
+        .single()
+
+      if (profileError) {
+        this.error = profileError.message
+        this.loading = false
+        return false
+      }
+
+      if (!profile.active) {
+        this.error = 'El usuario se encuentra deshabilitado'
+        this.loading = false
+        return false
+      }
+
+      this.user = {
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        role: profile.role
+      }
+
+      this.loading = false
+      return true
     },
 
     async register(name, email, password) {
@@ -44,7 +72,7 @@ export const useAuthStore = defineStore('auth', {
       if (error) {
         this.error = error.message
         this.loading = false
-        return
+        return false
       }
 
       const userId = data.user.id
@@ -62,7 +90,7 @@ export const useAuthStore = defineStore('auth', {
       if (profileError) {
         this.error = profileError.message
         this.loading = false
-        return
+        return false
       }
 
       this.user = {
@@ -73,9 +101,11 @@ export const useAuthStore = defineStore('auth', {
       }
 
       this.loading = false
+      return true
     },
 
-    logout() {
+    async logout() {
+      await supabase.auth.signOut()
       this.user = null
     }
   }
