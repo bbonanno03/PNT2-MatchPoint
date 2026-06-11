@@ -14,6 +14,42 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    async loadSession() {
+      this.loading = true
+      this.error = null
+
+      const { data, error } = await supabase.auth.getSession()
+
+      if (error || !data.session) {
+        this.user = null
+        this.loading = false
+        return
+      }
+
+      const userId = data.session.user.id
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, name, email, role, active')
+        .eq('id', userId)
+        .single()
+
+      if (profileError || !profile || !profile.active) {
+        this.user = null
+        this.loading = false
+        return
+      }
+
+      this.user = {
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        role: profile.role
+      }
+
+      this.loading = false
+    },
+
     async login(email, password) {
       this.loading = true
       this.error = null
