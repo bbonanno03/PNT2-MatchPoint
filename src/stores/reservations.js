@@ -1,49 +1,174 @@
-import { defineStore } from "pinia";
-import reservationsData from "../mocks/reservations.json";
-import { useAuthStore } from "./auth";
+import { defineStore } from 'pinia'
+import { useAuthStore } from './auth'
+import * as reservationsService from '../services/reservationsService'
 
-export const useReservationsStore = defineStore("reservations", {
+export const useReservationsStore = defineStore('reservations', {
   state: () => ({
-    reservations: reservationsData,
+    reservations: [],
+    loading: false,
+    error: null
   }),
 
   getters: {
-    activeReservations: (state) =>
-      state.reservations.filter(
-        (reservation) => reservation.status === "active",
-      ),
-
+    /**
+     * Obtiene las reservas del usuario autenticado
+     */
     myReservations: (state) => {
-      const authStore = useAuthStore();
-
-      if (!authStore.user) return [];
-
+      const authStore = useAuthStore()
+      if (!authStore.user) return []
       return state.reservations.filter(
-        (reservation) => reservation.userId === authStore.user.id,
-      );
+        (reservation) => reservation.user_id === authStore.user.id
+      )
     },
+
+    /**
+     * Obtiene las reservas activas del usuario
+     */
+    myActiveReservations: (state) => {
+      const authStore = useAuthStore()
+      if (!authStore.user) return []
+      return state.reservations.filter(
+        (reservation) =>
+          reservation.user_id === authStore.user.id &&
+          reservation.status === 'active'
+      )
+    },
+
+    /**
+     * Obtiene las reservas canceladas del usuario
+     */
+    myCancelledReservations: (state) => {
+      const authStore = useAuthStore()
+      if (!authStore.user) return []
+      return state.reservations.filter(
+        (reservation) =>
+          reservation.user_id === authStore.user.id &&
+          reservation.status === 'cancelled'
+      )
+    },
+
+    /**
+     * Todas las reservas activas (para admin)
+     */
+    activeReservations: (state) =>
+      state.reservations.filter((reservation) => reservation.status === 'active'),
+
+    /**
+     * Cuenta las reservas activas del usuario para validación de límites
+     */
+    activeReservationCount: (state) => {
+      const authStore = useAuthStore()
+      if (!authStore.user) return 0
+      return state.reservations.filter(
+        (reservation) =>
+          reservation.user_id === authStore.user.id &&
+          reservation.status === 'active'
+      ).length
+    }
   },
 
   actions: {
-    cancelReservation(id) {
-      const reservation = this.reservations.find((res) => res.id === id);
-      if (reservation) {
-        reservation.status = "cancelled";
+    /**
+     * Sprint 3: Cargar reservas del usuario desde Supabase
+     */
+    async fetchUserReservations() {
+      this.loading = true
+      this.error = null
+
+      const authStore = useAuthStore()
+      if (!authStore.user) {
+        this.reservations = []
+        this.loading = false
+        return
+      }
+
+      try {
+        const data = await reservationsService.getUserReservations(
+          authStore.user.id
+        )
+        this.reservations = data
+      } catch (err) {
+        this.error = err.message
+        console.error('Error fetching reservations:', err)
+      } finally {
+        this.loading = false
       }
     },
 
-    addReservation(userId, courtName, clubName, date, time) {
-      const newReservation = {
-        id: Date.now(),
-        userId: userId,
-        courtName: courtName,
-        clubName: clubName,
-        date: date,
-        time: time,
-        status: "confirmed",
-      };
+    /**
+     * Sprint 3: Agrega una reserva en Supabase
+     */
+    async addReservation(userId, courtId, courtName, clubName, date, time) {
+      this.loading = true
+      this.error = null
 
-      this.reservations.push(newReservation);
+      try {
+        const endTime = this._calculateEndTime(time)
+
+        const newReservation = await reservationsService.createReservation({
+          userId,
+          courtId,
+          reservationDate: date,
+          startTime: time,
+          endTime: endTime
+        })
+
+        this.reservations.push(newReservation)
+        return newReservation
+      } catch (err) {
+        this.error = err.message
+        throw err
+      } finally {
+        this.loading = false
+      }
     },
-  },
-});
+
+    /**
+     * Sprint 3: Cancela una reserva en Supabase
+     */
+    async cancelReservation(reservationId, date, time) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const result = await reservationsService.cancelReservation(
+          reservationId,
+          date,
+          time
+        )
+
+        const index = this.reservations.findIndex((r) => r.id === reservationId)
+        if (index !== -1) {
+          this.reservations[index].status = 'cancelled'
+        }
+
+        return result
+      } catch (err) {
+        this.error = err.message
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Limpia todas las reservas (útil para testing/demo)
+     */
+    clearReservations() {
+      this.reservations = []
+    },
+
+    /**
+     * Calcula la hora de fin (asume 1 hora de duración)
+     * @private
+     */
+    _calculateEndTime(startTime) {
+      const [hours, minutes] = startTime.split(':').map(Number)
+      const endHours = (hours + 1) % 24
+      return `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(
+        2,
+        '0'
+      )}`
+    }
+  }
+})

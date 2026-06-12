@@ -1,6 +1,6 @@
 [
   {
-    "id": 1,
+    "id": "550e8400-e29b-41d4-a716-446655440001",
     "name": "Cancha Pádel 1",
     "sport": "Pádel",
     "club": "MatchPoint Club",
@@ -9,7 +9,7 @@
     "active": true
   },
   {
-    "id": 2,
+    "id": "550e8400-e29b-41d4-a716-446655440002",
     "name": "Cancha Tenis 1",
     "sport": "Tenis",
     "club": "MatchPoint Club",
