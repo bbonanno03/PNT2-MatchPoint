@@ -89,7 +89,8 @@
                   <button @click="editCourt(court)" class="text-text-small bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-btn font-bold transition-colors cursor-pointer">
                     Editar
                   </button>
-                  <button @click="courtsStore.deleteCourt(court.id)" class="text-text-small bg-red-50 text-status-error hover:bg-red-100 border border-red-200 px-3 py-1 rounded-btn font-bold transition-colors cursor-pointer">
+                  <!-- 🌟 Cambiado para disparar la función local handleDelete -->
+                  <button @click="handleDelete(court)" class="text-text-small bg-red-50 text-status-error hover:bg-red-100 border border-red-200 px-3 py-1 rounded-btn font-bold transition-colors cursor-pointer">
                     Eliminar
                   </button>
                 </div>
@@ -106,8 +107,11 @@
 <script setup>
 import { ref } from 'vue'
 import { useCourtsStore } from '../stores/courts'
+// 🌟 1. Importamos el store de alertas globales
+import { useAlertsStore } from '../stores/alerts.js'
 
 const courtsStore = useCourtsStore()
+const alertsStore = useAlertsStore() // 🌟 2. Instanciamos el store de alertas
 
 const defaultForm = {
   name: '',
@@ -124,12 +128,20 @@ const currentCourtId = ref(null)
 function handleSubmit() {
   if (isEditing.value) {
     courtsStore.updateCourt(currentCourtId.value, form.value)
-    alert('¡Cancha modificada con éxito!')
+    // 🌟 3. Reemplazo del alert nativo por la alerta verde
+    alertsStore.showAlert(`¡Cancha "${form.value.name}" modificada con éxito!`, 'success')
   } else {
     courtsStore.addCourt(form.value)
-    alert('¡Cancha creada con éxito!')
+    // 🌟 4. Reemplazo del alert nativo por la alerta verde
+    alertsStore.showAlert(`¡Cancha "${form.value.name}" creada con éxito!`, 'success')
   }
   resetForm()
+}
+
+// 🌟 5. Función nueva para manejar el borrado de forma prolija con alerta roja
+function handleDelete(court) {
+  courtsStore.deleteCourt(court.id)
+  alertsStore.showAlert(`Se eliminó la cancha "${court.name}" del catálogo.`, 'error')
 }
 
 function editCourt(court) {
