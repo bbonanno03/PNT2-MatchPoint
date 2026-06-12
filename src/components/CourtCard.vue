@@ -14,6 +14,9 @@
       <p class="text-text-body text-text-muted">
         Club: <span class="font-semibold text-text-main">{{ court.club }}</span>
       </p>
+      <p class="text-text-body text-text-muted">
+        Deporte: <span class="font-semibold text-text-main">{{ court.sport }}</span>
+      </p>
       <p class="text-text-body text-brand font-bold mt-2 text-lg">
         ${{ court.price }} <span class="text-text-small font-medium text-text-muted">/ hora</span>
       </p>
