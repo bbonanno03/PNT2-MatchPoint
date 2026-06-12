@@ -162,24 +162,27 @@ async function confirmBooking() {
     }
   }
 
-  reservationsStore.addReservation(
-    authStore.user.id,
-    props.court.name,
-    props.court.club,
-    selectedDate.value,
-    selectedTime.value
-  )
+  try {
+    isSubmitting.value = true
+    await reservationsStore.addReservation(
+      authStore.user.id,
+      props.court.id,
+      props.court.name,
+      props.court.club,
+      selectedDate.value,
+      selectedTime.value
+    )
 
-  alertsStore.showAlert(`¡Reserva confirmada con éxito para el día ${selectedDate.value} a las ${selectedTime.value} hs!`, 'success')
-  
-  isBooking.value = false
-  selectedDate.value = ''
-  selectedTime.value = ''
+    alertsStore.showAlert(`¡Reserva confirmada con éxito para el día ${selectedDate.value} a las ${selectedTime.value} hs!`, 'success')
+    
+    isBooking.value = false
+    selectedDate.value = ''
+    selectedTime.value = ''
 
     router.push('/reservas')
   } catch (err) {
     console.error('Error al crear reserva:', err)
-    toastError(err.message || 'No se pudo crear la reserva.')
+    alertsStore.showAlert(err.message || 'No se pudo crear la reserva.', 'error')
   } finally {
     isSubmitting.value = false
   }

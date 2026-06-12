@@ -1,11 +1,13 @@
 import { defineStore } from "pinia";
-import courtsData from "../mocks/courts.json";
+import { supabase } from "../services/supabase";
 
 export const useCourtsStore = defineStore("courts", {
   state: () => ({
-    courts: courtsData,
+    courts: [],
     searchQuery: "",
     selectedSport: "",
+    loading: false,
+    error: null
   }),
 
   getters: {
@@ -33,6 +35,34 @@ export const useCourtsStore = defineStore("courts", {
   },
 
   actions: {
+    async fetchCourts() {
+      this.loading = true
+      this.error = null
+      
+      console.log('🚀 Iniciando fetchCourts desde Supabase...')
+
+      try {
+        console.log('📡 Conectando a Supabase...')
+        const { data, error } = await supabase
+          .from('courts')
+          .select('*')
+
+        if (error) {
+          console.error('❌ Error de Supabase:', error.message, error.code)
+          this.error = error.message
+          return
+        }
+
+        console.log('✅ Datos recibidos de Supabase:', data)
+        this.courts = data || []
+      } catch (err) {
+        console.error('❌ Error al conectar a Supabase:', err.message)
+        this.error = err.message
+      } finally {
+        this.loading = false
+      }
+    },
+
     setSportFilter(sport) {
       this.selectedSport = sport;
     },

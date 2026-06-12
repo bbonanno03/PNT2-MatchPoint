@@ -150,14 +150,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useReservationsStore } from '../stores/reservations'
 import { useAuthStore } from '../stores/auth'
-import { useToast } from '../composables/useToast'
+import { useAlertsStore } from '../stores/alerts'
 import ReservationCard from '../components/ReservationCard.vue'
 
 const reservationsStore = useReservationsStore()
 const authStore = useAuthStore()
+const alertsStore = useAlertsStore()
 const activeTab = ref('active')
 const pendingCancel = ref(null)
-const { success, error: toastError, warning } = useToast()
 
 const todayDate = new Date().toISOString().split('T')[0]
 
@@ -199,7 +199,7 @@ function handleCancel(reservationId) {
   )
 
   if (!reservation) {
-    toastError('No se encontró la reserva para cancelar.')
+    alertsStore.showAlert('No se encontró la reserva para cancelar.', 'error')
     return
   }
 
@@ -222,9 +222,9 @@ async function confirmCancel() {
       reservation.reservation_date || reservation.date,
       reservation.start_time || reservation.time
     )
-    success('Reserva cancelada correctamente.')
+    alertsStore.showAlert('Reserva cancelada correctamente.', 'success')
   } catch (error) {
-    toastError(error.message || 'No se pudo cancelar la reserva.')
+    alertsStore.showAlert(error.message || 'No se pudo cancelar la reserva.', 'error')
   }
 }
 </script>
