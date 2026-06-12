@@ -14,6 +14,9 @@
       <p class="text-text-body text-text-muted">
         Club: <span class="font-semibold text-text-main">{{ court.club }}</span>
       </p>
+      <p class="text-text-body text-text-muted">
+        Deporte: <span class="font-semibold text-text-main">{{ court.sport }}</span>
+      </p>
       <p class="text-text-body text-brand font-bold mt-2 text-lg">
         ${{ court.price }} <span class="text-text-small font-medium text-text-muted">/ hora</span>
       </p>
@@ -51,7 +54,7 @@
         </div>
       </div>
     </div>
-   
+    
 
     <div class="p-5 pt-0">
       <div v-if="isBooking" class="grid grid-cols-2 gap-3">
@@ -83,11 +86,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue' 
 import { useRouter } from 'vue-router'
 import { useReservationsStore } from '../stores/reservations'
 import { useAuthStore } from '../stores/auth'
-import { useToast } from '../composables/useToast'
+import { useAlertsStore } from '../stores/alerts.js'
 
 const props = defineProps({
   court: {
@@ -99,7 +102,7 @@ const props = defineProps({
 const router = useRouter()
 const reservationsStore = useReservationsStore()
 const authStore = useAuthStore()
-const { success, error: toastError, warning } = useToast()
+const alertsStore = useAlertsStore() 
 
 const isBooking = ref(false)
 const selectedDate = ref('')
@@ -122,10 +125,8 @@ const availableHours = computed(() => {
   }
 
   if (selectedDate.value === today.value) {
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-
-    return masterHours.filter((hourStr) => {
+    const currentHour = now.getHours() 
+    return masterHours.filter(hourStr => {
       const [hourNum] = hourStr.split(':').map(Number)
       return hourNum > currentHour
     })
@@ -136,7 +137,7 @@ const availableHours = computed(() => {
 
 function startBooking() {
   if (!authStore.user) {
-    warning('Debés iniciar sesión para reservar una cancha.')
+    alertsStore.showAlert('Tenés que iniciar sesión para poder reservar una cancha.', 'error')
     router.push('/login')
     return
   }
@@ -147,7 +148,7 @@ async function confirmBooking() {
   if (!selectedDate.value || !selectedTime.value) return
 
   if (selectedDate.value < today.value) {
-    warning('No podés reservar un turno en una fecha pasada.')
+    alertsStore.showAlert('No podés reservar un turno en una fecha pasada.', 'error')
     return
   }
 
@@ -156,28 +157,24 @@ async function confirmBooking() {
     const [selectedHourNum] = selectedTime.value.split(':').map(Number)
 
     if (selectedHourNum <= currentHour) {
-      warning('El horario seleccionado ya pasó. Elegí un turno posterior.')
+      alertsStore.showAlert('El horario seleccionado ya pasó. Elegí un turno posterior.', 'error')
       return
     }
   }
 
-  isSubmitting.value = true
+  reservationsStore.addReservation(
+    authStore.user.id,
+    props.court.name,
+    props.court.club,
+    selectedDate.value,
+    selectedTime.value
+  )
 
-  try {
-    await reservationsStore.addReservation(
-      authStore.user.id,
-      props.court.id,
-      props.court.name,
-      props.court.club,
-      selectedDate.value,
-      selectedTime.value
-    )
-
-    success(`¡Reserva confirmada para el ${selectedDate.value} a las ${selectedTime.value} hs!`)
-
-    isBooking.value = false
-    selectedDate.value = ''
-    selectedTime.value = ''
+  alertsStore.showAlert(`¡Reserva confirmada con éxito para el día ${selectedDate.value} a las ${selectedTime.value} hs!`, 'success')
+  
+  isBooking.value = false
+  selectedDate.value = ''
+  selectedTime.value = ''
 
     router.push('/reservas')
   } catch (err) {

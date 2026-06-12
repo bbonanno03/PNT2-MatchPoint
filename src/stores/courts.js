@@ -1,50 +1,72 @@
-import { defineStore } from 'pinia'
-import { supabase } from '../services/supabase'
-import courtsData from '../mocks/courts.json'
+import { defineStore } from "pinia";
+import courtsData from "../mocks/courts.json";
 
-export const useCourtsStore = defineStore('courts', {
+export const useCourtsStore = defineStore("courts", {
   state: () => ({
-    courts: courtsData, 
-    loading: false,
-    error: null
+    courts: courtsData,
+    searchQuery: "",
+    selectedSport: "",
   }),
 
   getters: {
-    activeCourts: (state) =>
-      state.courts.filter(court => court.active)
+    activeCourts: (state) => state.courts.filter((court) => court.active),
+
+    filteredCourts: (state) => {
+      return state.courts.filter((court) => {
+        if (!court.active) return false;
+        if (!court.sport) return false;
+
+        const matchesSport =
+          !state.selectedSport ||
+          court.sport.toLowerCase() === state.selectedSport.toLowerCase();
+
+        const courtName = court.name ? court.name.toLowerCase() : "";
+        const courtClub = court.club ? court.club.toLowerCase() : "";
+        const query = state.searchQuery.toLowerCase().trim();
+
+        const matchesSearch =
+          !query || courtName.includes(query) || courtClub.includes(query);
+
+        return matchesSport && matchesSearch;
+      });
+    },
   },
 
   actions: {
-    async fetchCourts() {
-      this.loading = true
-      this.error = null
+    setSportFilter(sport) {
+      this.selectedSport = sport;
+    },
+    clearFilters() {
+      this.selectedSport = "";
+      this.searchQuery = "";
+    },
 
-      try {
-        const { data, error } = await supabase
-          .from('courts')
-          .select('id, name, sport, club, location, price, image_url, active, created_at')
-          .eq('active', true)
-          .order('name', { ascending: true })
+    addCourt(newCourtData) {
+      const newCourt = {
+        id: Date.now(),
+        name: newCourtData.name,
+        sport: newCourtData.sport,
+        club: newCourtData.club,
+        location: newCourtData.location,
+        price: Number(newCourtData.price),
+        active: true,
+      };
+      this.courts.push(newCourt);
+    },
 
-        if (error) throw error
-
-        this.courts = (data || []).map(court => ({
-          id: court.id,
-          name: court.name,
-          sport: court.sport,
-          club: court.club,
-          location: court.location,
-          price: parseFloat(court.price),
-          image_url: court.image_url,
-          active: court.active
-        }))
-      } catch (err) {
-        console.error('Error al cargar canchas:', err)
-        this.error = err.message
-        // Fallback: mantener el mock
-      } finally {
-        this.loading = false
+    updateCourt(id, updatedData) {
+      const index = this.courts.findIndex((c) => c.id === id);
+      if (index !== -1) {
+        this.courts[index] = {
+          ...this.courts[index],
+          ...updatedData,
+          price: Number(updatedData.price),
+        };
       }
-    }
-  }
-})
+    },
+
+    deleteCourt(id) {
+      this.courts = this.courts.filter((c) => c.id !== id);
+    },
+  },
+});
