@@ -40,5 +40,33 @@ export const useCourtsStore = defineStore("courts", {
       this.selectedSport = "";
       this.searchQuery = "";
     },
+
+    addCourt(newCourtData) {
+      const newCourt = {
+        id: Date.now(),
+        name: newCourtData.name,
+        sport: newCourtData.sport,
+        club: newCourtData.club,
+        location: newCourtData.location,
+        price: Number(newCourtData.price),
+        active: true,
+      };
+      this.courts.push(newCourt);
+    },
+
+    updateCourt(id, updatedData) {
+      const index = this.courts.findIndex((c) => c.id === id);
+      if (index !== -1) {
+        this.courts[index] = {
+          ...this.courts[index],
+          ...updatedData,
+          price: Number(updatedData.price),
+        };
+      }
+    },
+
+    deleteCourt(id) {
+      this.courts = this.courts.filter((c) => c.id !== id);
+    },
   },
 });
