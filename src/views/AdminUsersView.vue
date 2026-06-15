@@ -101,12 +101,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUsersStore } from '../stores/users'
 import { useAlertsStore } from '../stores/alerts.js'
 
 const usersStore = useUsersStore()
 const alertsStore = useAlertsStore()
+
+onMounted(async () => {
+  await usersStore.loadUsers()
+})
 
 const isEditing = ref(false)
 const currentUserId = ref(null)

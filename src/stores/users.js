@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { supabase } from "../services/supabase";
 
 export const useUsersStore = defineStore("users", {
   state: () => ({
@@ -36,23 +37,44 @@ export const useUsersStore = defineStore("users", {
   }),
 
   actions: {
+
+    async loadUsers() {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*");
+
+      if (!error) {
+        this.users = data;
+      }
+    },
     // 📝 UPDATE: Modificar datos de un usuario existente
-    updateUser(id, updatedData) {
-      const index = this.users.findIndex((u) => u.id === id);
-      if (index !== -1) {
-        this.users[index] = {
-          ...this.users[index],
-          ...updatedData,
-        };
+    async updateUser(id, updatedData) {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedData)
+        .eq('id', id)
+
+      if (!error) {
+        await this.loadUsers()
       }
     },
 
     // 🔒 DISABLE / TOGGLE: Alternar estado activo/inactivo de un usuario
-    toggleUserStatus(id) {
-      const index = this.users.findIndex((u) => u.id === id);
-      if (index !== -1) {
-        this.users[index].active = !this.users[index].active;
-      }
-    },
+    async toggleUserStatus(id) {
+  const user = this.users.find(u => u.id === id)
+
+  if (!user) return
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      active: !user.active
+    })
+    .eq('id', id)
+
+  if (!error) {
+    await this.loadUsers()
+  }
+}
   },
 });
