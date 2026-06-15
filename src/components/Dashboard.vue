@@ -39,6 +39,21 @@
       <div class="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-2xl">
         ⚡
       </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow border-l-4 border-l-red-500">
+  <div>
+    <p class="text-sm font-bold text-slate-500 uppercase tracking-wider">
+      Reservas Canceladas
+    </p>
+    <h3 class="text-3xl font-black text-red-600 mt-1">
+      {{ cancelledReservations }}
+    </h3>
+  </div>
+
+  <div class="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-2xl">
+    ❌
+  </div>
+  </div>
     </div>
 
   </div>
@@ -62,6 +77,12 @@ const activeReservations = computed(() => {
   if (!reservationsStore.reservations || reservationsStore.reservations.length === 0) {
     return 0
   }
+
+  const cancelledReservations = computed(() => {
+  return reservationsStore.reservations.filter(
+    reservation => reservation.status === 'cancelled'
+  ).length
+})
 
   const todayStr = new Date().toISOString().split('T')[0]
 
