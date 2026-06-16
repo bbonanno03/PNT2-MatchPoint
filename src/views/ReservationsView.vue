@@ -10,102 +10,126 @@
       </p>
     </div>
 
-    <div class="flex gap-4 mb-6 border-b border-surface-border">
-      <button
-        @click="activeTab = 'active'"
-        :class="[
-          'px-4 py-2 text-text-body font-semibold border-b-2 transition-colors',
-          activeTab === 'active'
-            ? 'border-brand text-brand'
-            : 'border-transparent text-text-muted hover:text-text-main'
-        ]"
-      >
-        Activas ({{ reservationsStore.myActiveReservations.length }})
-      </button>
-      <button
-        @click="activeTab = 'cancelled'"
-        :class="[
-          'px-4 py-2 text-text-body font-semibold border-b-2 transition-colors',
-          activeTab === 'cancelled'
-            ? 'border-brand text-brand'
-            : 'border-transparent text-text-muted hover:text-text-main'
-        ]"
-      >
-        Canceladas ({{ reservationsStore.myCancelledReservations.length }})
-      </button>
-      <button
-        @click="activeTab = 'history'"
-        :class="[
-          'px-4 py-2 text-text-body font-semibold border-b-2 transition-colors',
-          activeTab === 'history'
-            ? 'border-brand text-brand'
-            : 'border-transparent text-text-muted hover:text-text-main'
-        ]"
-      >
-        Historial ({{ reservationsStore.myHistoryReservations.length }})
-      </button>
-    </div>
-
-    <div 
-      v-if="!reservationsStore.myReservations.length" 
-      class="bg-surface-card border border-surface-border rounded-card p-12 text-center shadow-flat"
-    >
-      <span class="text-5xl block mb-4">📅</span>
-      <h3 class="text-card-title font-bold text-text-main">No tenés reservas</h3>
-      <p class="text-text-body text-text-muted mt-1 max-w-sm mx-auto">
-        ¿Te falta fútbol? Revisá las canchas disponibles y hacé tu primera reserva.
+    <div v-if="!authStore.user" class="bg-surface-card border border-surface-border rounded-card p-12 text-center shadow-flat max-w-2xl mx-auto mt-12">
+      <span class="text-5xl block mb-4">🔒</span>
+      <h3 class="text-card-title font-bold text-text-main">Iniciá sesión para ver tus reservas</h3>
+      <p class="text-text-body text-text-muted mt-2 max-w-sm mx-auto">
+        Accedé a tu cuenta para revisar tus partidos activos, el historial de turnos jugados o gestionar tus cancelaciones.
       </p>
-      <router-link 
-        to="/canchas" 
-        class="inline-block mt-5 bg-brand hover:bg-brand-dark text-white font-bold px-5 py-2.5 rounded-btn shadow-flat transition-colors text-text-body"
-      >
-        Ver Canchas Disponibles
-      </router-link>
+      <div class="flex justify-center gap-4 mt-6">
+        <router-link 
+          to="/login" 
+          class="bg-brand hover:bg-brand-dark text-white font-bold px-6 py-2.5 rounded-btn shadow-flat transition-colors text-text-body"
+        >
+          Ingresar
+        </router-link>
+        <router-link 
+          to="/register" 
+          class="border border-surface-border text-text-main hover:bg-surface-bg font-bold px-6 py-2.5 rounded-btn transition-colors text-text-body"
+        >
+          Registrarse
+        </router-link>
+      </div>
     </div>
 
-    <div v-else-if="activeTab === 'active'" class="space-y-4">
-      <div 
-        v-if="!reservationsStore.myActiveReservations.length"
-        class="bg-surface-card border border-surface-border rounded-card p-8 text-center"
-      >
-        <p class="text-text-body text-text-muted">No tenés reservas activas en este momento.</p>
+    <div v-else>
+      <div class="flex gap-4 mb-6 border-b border-surface-border">
+        <button
+          @click="activeTab = 'active'"
+          :class="[
+            'px-4 py-2 text-text-body font-semibold border-b-2 transition-colors',
+            activeTab === 'active'
+              ? 'border-brand text-brand'
+              : 'border-transparent text-text-muted hover:text-text-main'
+          ]"
+        >
+          Activas ({{ reservationsStore.myActiveReservations.length }})
+        </button>
+        <button
+          @click="activeTab = 'cancelled'"
+          :class="[
+            'px-4 py-2 text-text-body font-semibold border-b-2 transition-colors',
+            activeTab === 'cancelled'
+              ? 'border-brand text-brand'
+              : 'border-transparent text-text-muted hover:text-text-main'
+          ]"
+        >
+          Canceladas ({{ reservationsStore.myCancelledReservations.length }})
+        </button>
+        <button
+          @click="activeTab = 'history'"
+          :class="[
+            'px-4 py-2 text-text-body font-semibold border-b-2 transition-colors',
+            activeTab === 'history'
+              ? 'border-brand text-brand'
+              : 'border-transparent text-text-muted hover:text-text-main'
+          ]"
+        >
+          Historial ({{ reservationsStore.myHistoryReservations.length }})
+        </button>
       </div>
-      <ReservationCard
-        v-for="reservation in reservationsStore.myActiveReservations"
-        :key="reservation.id"
-        :reservation="reservation"
-        @cancel="handleCancel"
-      />
-    </div>
 
-    <div v-else-if="activeTab === 'cancelled'" class="space-y-4">
       <div 
-        v-if="!reservationsStore.myCancelledReservations.length"
-        class="bg-surface-card border border-surface-border rounded-card p-8 text-center"
+        v-if="!reservationsStore.myReservations.length" 
+        class="bg-surface-card border border-surface-border rounded-card p-12 text-center shadow-flat"
       >
-        <p class="text-text-body text-text-muted">No tenés reservas canceladas.</p>
+        <span class="text-5xl block mb-4">📅</span>
+        <h3 class="text-card-title font-bold text-text-main">No tenés reservas</h3>
+        <p class="text-text-body text-text-muted mt-1 max-w-sm mx-auto">
+          ¿Te falta fútbol? Revisá las canchas disponibles y hacé tu primera reserva.
+        </p>
+        <router-link 
+          to="/canchas" 
+          class="inline-block mt-5 bg-brand hover:bg-brand-dark text-white font-bold px-5 py-2.5 rounded-btn shadow-flat transition-colors text-text-body"
+        >
+          Ver Canchas Disponibles
+        </router-link>
       </div>
-      <ReservationCard
-        v-for="reservation in reservationsStore.myCancelledReservations"
-        :key="reservation.id"
-        :reservation="reservation"
-        :is-cancelled="true"
-      />
-    </div>
 
-    <div v-else-if="activeTab === 'history'" class="space-y-4">
-      <div 
-        v-if="!reservationsStore.myHistoryReservations.length"
-        class="bg-surface-card border border-surface-border rounded-card p-8 text-center"
-      >
-        <p class="text-text-body text-text-muted">No hay reservas en el historial.</p>
+      <div v-else-if="activeTab === 'active'" class="space-y-4">
+        <div 
+          v-if="!reservationsStore.myActiveReservations.length"
+          class="bg-surface-card border border-surface-border rounded-card p-8 text-center"
+        >
+          <p class="text-text-body text-text-muted">No tenés reservas activas en este momento.</p>
+        </div>
+        <ReservationCard
+          v-for="reservation in reservationsStore.myActiveReservations"
+          :key="reservation.id"
+          :reservation="reservation"
+          @cancel="handleCancel"
+        />
       </div>
-      <ReservationCard
-        v-for="reservation in reservationsStore.myHistoryReservations"
-        :key="reservation.id"
-        :reservation="reservation"
-        :is-cancelled="false"
-      />
+
+      <div v-else-if="activeTab === 'cancelled'" class="space-y-4">
+        <div 
+          v-if="!reservationsStore.myCancelledReservations.length"
+          class="bg-surface-card border border-surface-border rounded-card p-8 text-center"
+        >
+          <p class="text-text-body text-text-muted">No tenés reservas canceladas.</p>
+        </div>
+        <ReservationCard
+          v-for="reservation in reservationsStore.myCancelledReservations"
+          :key="reservation.id"
+          :reservation="reservation"
+          :is-cancelled="true"
+        />
+      </div>
+
+      <div v-else-if="activeTab === 'history'" class="space-y-4">
+        <div 
+          v-if="!reservationsStore.myHistoryReservations.length"
+          class="bg-surface-card border border-surface-border rounded-card p-8 text-center"
+        >
+          <p class="text-text-body text-text-muted">No hay reservas en el historial.</p>
+        </div>
+        <ReservationCard
+          v-for="reservation in reservationsStore.myHistoryReservations"
+          :key="reservation.id"
+          :reservation="reservation"
+          :is-cancelled="false"
+        />
+      </div>
     </div>
 
     <div
