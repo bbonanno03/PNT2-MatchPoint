@@ -101,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue' 
 import { useUsersStore } from '../stores/users'
 import { useAlertsStore } from '../stores/alerts.js'
 
@@ -112,27 +112,43 @@ const isEditing = ref(false)
 const currentUserId = ref(null)
 const form = ref({ name: '', role: '' })
 
+onMounted(async () => {
+  await usersStore.fetchUsers()
+  if (usersStore.error) {
+    alertsStore.showAlert(`Error al cargar usuarios: ${usersStore.error}`, 'error')
+  }
+})
+
 function selectUser(user) {
   isEditing.value = true
   currentUserId.value = user.id
   form.value = { name: user.name, role: user.role }
 }
 
-function handleSubmit() {
-  usersStore.updateUser(currentUserId.value, form.value)
-  alertsStore.showAlert(`Usuario "${form.value.name}" actualizado correctamente.`, 'success')
-  cancelEdit()
+async function handleSubmit() {
+  const success = await usersStore.updateUser(currentUserId.value, form.value)
+  
+  if (success) {
+    alertsStore.showAlert(`Usuario "${form.value.name}" actualizado correctamente.`, 'success')
+    cancelEdit()
+  } else {
+    alertsStore.showAlert(`No se pudo actualizar el usuario: ${usersStore.error}`, 'error')
+  }
 }
 
-function handleToggleStatus(user) {
-  usersStore.toggleUserStatus(user.id)
+async function handleToggleStatus(user) {
+  const estadoOriginal = user.active 
   
-  if (!user.active) {
-    // Al mutar, si pasó a false (estaba activo antes del clic) tiramos alerta roja
-    alertsStore.showAlert(`El usuario "${user.name}" ha sido deshabilitado.`, 'error')
+  const success = await usersStore.toggleUserStatus(user.id)
+  
+  if (success) {
+    if (!user.active) {
+      alertsStore.showAlert(`El usuario "${user.name}" ha sido deshabilitado.`, 'error')
+    } else {
+      alertsStore.showAlert(`El usuario "${user.name}" fue reactivado con éxito.`, 'success')
+    }
   } else {
-    // Si pasó a true, tiramos alerta verde
-    alertsStore.showAlert(`El usuario "${user.name}" fue reactivado con éxito.`, 'success')
+    alertsStore.showAlert(`Error al cambiar el estado: ${usersStore.error}`, 'error')
   }
 }
 

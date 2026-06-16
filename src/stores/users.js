@@ -1,43 +1,60 @@
 import { defineStore } from "pinia";
+import { supabase } from "../services/supabase";
 
 export const useUsersStore = defineStore("users", {
   state: () => ({
-    // 👥 Datos Mock de usuarios iniciales
-    users: [
-      {
-        id: 1,
-        name: "Nicolás Gómez",
-        email: "nico@matchpoint.com",
-        role: "Admin",
-        active: true,
-      },
-      {
-        id: 2,
-        name: "Lucas Pérez",
-        email: "lucas@gmail.com",
-        role: "Cliente",
-        active: true,
-      },
-      {
-        id: 3,
-        name: "Martina Silva",
-        email: "marti@hotmail.com",
-        role: "Cliente",
-        active: true,
-      },
-      {
-        id: 4,
-        name: "Julián Rossi",
-        email: "juli@matchpoint.com",
-        role: "Admin",
-        active: false,
-      },
-    ],
+    users: [],
+    loading: false,
+    error: null,
   }),
 
   actions: {
-    // 📝 UPDATE: Modificar datos de un usuario existente
-    updateUser(id, updatedData) {
+    async fetchUsers() {
+      this.loading = true;
+      this.error = null;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, name, email, role, active")
+        .order("name", { ascending: true });
+
+      if (error) {
+        this.error = error.message;
+        this.loading = false;
+        return;
+      }
+
+      this.users = data.map((u) => ({
+        id: u.id,
+        name: u.name || "Sin nombre",
+        email: u.email,
+        role: u.role === "admin" ? "Admin" : "Cliente",
+        active: u.active ?? true,
+      }));
+
+      this.loading = false;
+    },
+
+    async updateUser(id, updatedData) {
+      this.loading = true;
+      this.error = null;
+
+      const dbData = { ...updatedData };
+      if (dbData.role) {
+        dbData.role = dbData.role === "Admin" ? "admin" : "player";
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update(dbData)
+        .eq("id", id);
+
+      if (error) {
+        this.error = error.message;
+        this.loading = false;
+        return false;
+      }
+
       const index = this.users.findIndex((u) => u.id === id);
       if (index !== -1) {
         this.users[index] = {
@@ -45,14 +62,34 @@ export const useUsersStore = defineStore("users", {
           ...updatedData,
         };
       }
+
+      this.loading = false;
+      return true;
     },
 
-    // 🔒 DISABLE / TOGGLE: Alternar estado activo/inactivo de un usuario
-    toggleUserStatus(id) {
-      const index = this.users.findIndex((u) => u.id === id);
-      if (index !== -1) {
-        this.users[index].active = !this.users[index].active;
+    async toggleUserStatus(id) {
+      this.loading = true;
+      this.error = null;
+
+      const user = this.users.find((u) => u.id === id);
+      if (!user) return false;
+
+      const nuevoEstado = !user.active;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ active: nuevoEstado })
+        .eq("id", id);
+
+      if (error) {
+        this.error = error.message;
+        this.loading = false;
+        return false;
       }
+
+      user.active = nuevoEstado;
+      this.loading = false;
+      return true;
     },
   },
 });
