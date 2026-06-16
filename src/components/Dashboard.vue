@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue' 
 import { useUsersStore } from '../stores/users'
 import { useCourtsStore } from '../stores/courts'
 import { useReservationsStore } from '../stores/reservations'
@@ -53,6 +53,18 @@ import { useReservationsStore } from '../stores/reservations'
 const usersStore = useUsersStore()
 const courtsStore = useCourtsStore()
 const reservationsStore = useReservationsStore()
+
+onMounted(async () => {
+  if (usersStore.users.length === 0) {
+    await usersStore.fetchUsers()
+  }
+  
+  if (courtsStore.courts.length === 0) {
+    await courtsStore.fetchCourts()
+  }
+
+  await reservationsStore.fetchAllReservations()
+})
 
 const totalUsers = computed(() => usersStore.users.length)
 const totalCourts = computed(() => courtsStore.courts.length)

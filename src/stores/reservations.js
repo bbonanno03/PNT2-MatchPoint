@@ -1,174 +1,161 @@
-import { defineStore } from 'pinia'
-import { useAuthStore } from './auth'
-import * as reservationsService from '../services/reservationsService'
+import { defineStore } from "pinia";
+import { useAuthStore } from "./auth";
+import * as reservationsService from "../services/reservationsService";
 
-export const useReservationsStore = defineStore('reservations', {
+export const useReservationsStore = defineStore("reservations", {
   state: () => ({
     reservations: [],
     loading: false,
-    error: null
+    error: null,
   }),
 
   getters: {
-    /**
-     * Obtiene las reservas del usuario autenticado
-     */
     myReservations: (state) => {
-      const authStore = useAuthStore()
-      if (!authStore.user) return []
+      const authStore = useAuthStore();
+      if (!authStore.user) return [];
       return state.reservations.filter(
-        (reservation) => reservation.user_id === authStore.user.id
-      )
+        (reservation) => reservation.user_id === authStore.user.id,
+      );
     },
 
-    /**
-     * Obtiene las reservas activas del usuario
-     */
     myActiveReservations: (state) => {
-      const authStore = useAuthStore()
-      if (!authStore.user) return []
+      const authStore = useAuthStore();
+      if (!authStore.user) return [];
       return state.reservations.filter(
         (reservation) =>
           reservation.user_id === authStore.user.id &&
-          reservation.status === 'active'
-      )
+          reservation.status === "active",
+      );
     },
 
-    /**
-     * Obtiene las reservas canceladas del usuario
-     */
     myCancelledReservations: (state) => {
-      const authStore = useAuthStore()
-      if (!authStore.user) return []
+      const authStore = useAuthStore();
+      if (!authStore.user) return [];
       return state.reservations.filter(
         (reservation) =>
           reservation.user_id === authStore.user.id &&
-          reservation.status === 'cancelled'
-      )
+          reservation.status === "cancelled",
+      );
     },
 
-    /**
-     * Todas las reservas activas (para admin)
-     */
     activeReservations: (state) =>
-      state.reservations.filter((reservation) => reservation.status === 'active'),
+      state.reservations.filter(
+        (reservation) => reservation.status === "active",
+      ),
 
-    /**
-     * Cuenta las reservas activas del usuario para validación de límites
-     */
     activeReservationCount: (state) => {
-      const authStore = useAuthStore()
-      if (!authStore.user) return 0
+      const authStore = useAuthStore();
+      if (!authStore.user) return 0;
       return state.reservations.filter(
         (reservation) =>
           reservation.user_id === authStore.user.id &&
-          reservation.status === 'active'
-      ).length
-    }
+          reservation.status === "active",
+      ).length;
+    },
   },
 
   actions: {
-    /**
-     * Sprint 3: Cargar reservas del usuario desde Supabase
-     */
     async fetchUserReservations() {
-      this.loading = true
-      this.error = null
+      this.loading = true;
+      this.error = null;
 
-      const authStore = useAuthStore()
+      const authStore = useAuthStore();
       if (!authStore.user) {
-        this.reservations = []
-        this.loading = false
-        return
+        this.reservations = [];
+        this.loading = false;
+        return;
       }
 
       try {
         const data = await reservationsService.getUserReservations(
-          authStore.user.id
-        )
-        this.reservations = data
+          authStore.user.id,
+        );
+        this.reservations = data;
       } catch (err) {
-        this.error = err.message
-        console.error('Error fetching reservations:', err)
+        this.error = err.message;
+        console.error("Error fetching reservations:", err);
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
-    /**
-     * Sprint 3: Agrega una reserva en Supabase
-     */
+    async fetchAllReservations() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const data = await reservationsService.getAllReservations();
+        this.reservations = data;
+      } catch (err) {
+        this.error = err.message;
+        console.error("Error fetching all reservations:", err);
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async addReservation(userId, courtId, courtName, clubName, date, time) {
-      this.loading = true
-      this.error = null
+      this.loading = true;
+      this.error = null;
 
       try {
-        const endTime = this._calculateEndTime(time)
+        const endTime = this._calculateEndTime(time);
 
         const newReservation = await reservationsService.createReservation({
           userId,
           courtId,
           reservationDate: date,
           startTime: time,
-          endTime: endTime
-        })
+          endTime: endTime,
+        });
 
-        this.reservations.push(newReservation)
-        return newReservation
+        this.reservations.push(newReservation);
+        return newReservation;
       } catch (err) {
-        this.error = err.message
-        throw err
+        this.error = err.message;
+        throw err;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
-    /**
-     * Sprint 3: Cancela una reserva en Supabase
-     */
     async cancelReservation(reservationId, date, time) {
-      this.loading = true
-      this.error = null
+      this.loading = true;
+      this.error = null;
 
       try {
         const result = await reservationsService.cancelReservation(
           reservationId,
           date,
-          time
-        )
+          time,
+        );
 
-        const index = this.reservations.findIndex((r) => r.id === reservationId)
+        const index = this.reservations.findIndex(
+          (r) => r.id === reservationId,
+        );
         if (index !== -1) {
-          this.reservations[index].status = 'cancelled'
+          this.reservations[index].status = "cancelled";
         }
 
-        return result
+        return result;
       } catch (err) {
-        this.error = err.message
-        throw err
+        this.error = err.message;
+        throw err;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
-    /**
-     * Limpia todas las reservas (útil para testing/demo)
-     */
     clearReservations() {
-      this.reservations = []
+      this.reservations = [];
     },
 
-    /**
-     * Calcula la hora de fin (asume 1 hora de duración)
-     * @private
-     */
     _calculateEndTime(startTime) {
-      const [hours, minutes] = startTime.split(':').map(Number)
-      const endHours = (hours + 1) % 24
-      return `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(
+      const [hours, minutes] = startTime.split(":").map(Number);
+      const endHours = (hours + 1) % 24;
+      return `${String(endHours).padStart(2, "0")}:${String(minutes).padStart(
         2,
-        '0'
-      )}`
-    }
-  }
-})
+        "0",
+      )}`;
+    },
+  },
+});
