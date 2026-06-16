@@ -1,5 +1,5 @@
 -- ============================================
--- CONFIGURACIÓN FINAL DE SUPABASE
+-- CONFIGURACIÓN FINAL DE SUPABASE (ACTUALIZADO PARA DESARROLLO)
 -- Ejecuta este SQL en el SQL Editor de Supabase
 -- ============================================
 
@@ -21,18 +21,37 @@ ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE policies ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
--- POLÍTICAS DE RLS PARA COURTS
+-- POLÍTICAS DE RLS PARA COURTS (MODIFICADO CRUD COMPLETO)
 -- ============================================
 
--- Todos pueden ver las canchas activas
-CREATE POLICY "anyone_can_view_active_courts"
-  ON courts FOR SELECT
-  USING (active = true);
+-- Limpieza preventiva de políticas previas para evitar conflictos al re-ejecutar
+DROP POLICY IF EXISTS "anyone_can_view_active_courts" ON courts;
+DROP POLICY IF EXISTS "only_authenticated_can_insert_courts" ON courts;
+DROP POLICY IF EXISTS "anyone_can_view_courts" ON courts;
+DROP POLICY IF EXISTS "anyone_can_insert_courts" ON courts;
+DROP POLICY IF EXISTS "anyone_can_update_courts" ON courts;
+DROP POLICY IF EXISTS "anyone_can_delete_courts" ON courts;
 
--- Solo admins pueden crear/actualizar canchas
-CREATE POLICY "only_authenticated_can_insert_courts"
-  ON courts FOR INSERT
-  WITH CHECK (false);
+-- Todos pueden ver las canchas
+CREATE POLICY "anyone_can_view_courts" 
+  ON courts FOR SELECT 
+  USING (true);
+
+-- Permitir agregar canchas desde el panel de Admin de la app
+CREATE POLICY "anyone_can_insert_courts" 
+  ON courts FOR INSERT 
+  WITH CHECK (true);
+
+-- Permitir modificar canchas (cambios de estado, precios o nombres)
+CREATE POLICY "anyone_can_update_courts" 
+  ON courts FOR UPDATE 
+  USING (true) 
+  WITH CHECK (true);
+
+-- Permitir eliminar canchas físicamente de la base de datos (Arregla el bug del F5)
+CREATE POLICY "anyone_can_delete_courts" 
+  ON courts FOR DELETE 
+  USING (true);
 
 -- ============================================
 -- POLÍTICAS DE RLS PARA RESERVATIONS
@@ -76,20 +95,11 @@ CREATE POLICY "nobody_can_update_policies"
 -- CREAR ÍNDICES PARA MEJOR RENDIMIENTO
 -- ============================================
 
-CREATE INDEX IF NOT EXISTS idx_reservations_user_id 
-ON reservations(user_id);
-
-CREATE INDEX IF NOT EXISTS idx_reservations_court_id 
-ON reservations(court_id);
-
-CREATE INDEX IF NOT EXISTS idx_reservations_date 
-ON reservations(reservation_date);
-
-CREATE INDEX IF NOT EXISTS idx_reservations_status 
-ON reservations(status);
-
-CREATE INDEX IF NOT EXISTS idx_courts_active 
-ON courts(active);
+CREATE INDEX IF NOT EXISTS idx_reservations_user_id ON reservations(user_id);
+CREATE INDEX IF NOT EXISTS idx_reservations_court_id ON reservations(court_id);
+CREATE INDEX IF NOT EXISTS idx_reservations_date ON reservations(reservation_date);
+CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations(status);
+CREATE INDEX IF NOT EXISTS idx_courts_active ON courts(active);
 
 -- ============================================
 -- VERIFICAR QUE TODO ESTÁ LISTO
