@@ -12,6 +12,9 @@
         <p class="text-text-body text-text-muted mt-0.5">
           Club: <span class="font-semibold text-text-main">{{ reservation.courts?.club || reservation.clubName || 'Club' }}</span>
         </p>
+        <p class="text-text-body text-text-muted mt-0.5">
+  Deporte: <span class="font-semibold text-text-main">{{ reservation.courts?.sport || reservation.sport || 'No especificado' }}</span>
+</p>
         <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-text-small font-medium text-text-muted">
           <span>📅 {{ formatDate(reservation.reservation_date || reservation.date) }}</span>
           <span>⏰ {{ reservation.start_time || reservation.time }} - {{ reservation.end_time || reservation.endTime }} hs</span>

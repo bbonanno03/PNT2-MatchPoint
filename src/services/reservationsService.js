@@ -94,7 +94,7 @@ export async function getUserReservations(userId) {
         end_time,
         status,
         created_at,
-        courts(name, club, location, price, image_url)
+        courts(name, club, location, price, image_url, sport)
         `,
       )
       .eq("user_id", userId)
@@ -123,7 +123,7 @@ export async function getAllReservations() {
         end_time,
         status,
         created_at,
-        courts(name, club, location, price, image_url)
+        courts(name, club, location, price, image_url, sport)
         `,
       )
       .order("reservation_date", { ascending: false });
@@ -150,7 +150,7 @@ export async function getActiveReservations(userId) {
         end_time,
         status,
         created_at,
-        courts(name, club, location, price, image_url)
+        courts(name, club, location, price, image_url, sport)
         `,
       )
       .eq("user_id", userId)
