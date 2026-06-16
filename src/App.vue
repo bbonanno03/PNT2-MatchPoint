@@ -16,4 +16,6 @@ const courtsStore = useCourtsStore()
 onMounted(async () => {
   await courtsStore.fetchCourts()
 })
+
+
 </script>

@@ -6,8 +6,9 @@
         <h2 class="text-card-title font-bold text-text-main leading-tight">
           {{ court.name }}
         </h2>
+        <!-- 🌟 CORRECCIÓN: Ahora usa court.sport que viene real de Supabase -->
         <span class="px-2.5 py-0.5 text-text-small font-bold rounded-full bg-green-50 text-status-success border border-green-100">
-          {{ court.type }}
+          {{ court.sport }}
         </span>
       </div>
       
@@ -55,7 +56,6 @@
       </div>
     </div>
     
-
     <div class="p-5 pt-0">
       <div v-if="isBooking" class="grid grid-cols-2 gap-3">
         <button 
@@ -66,10 +66,10 @@
         </button>
         <button 
           @click="confirmBooking"
-          :disabled="!selectedDate || !selectedTime"
+          :disabled="!selectedDate || !selectedTime || isSubmitting"
           class="bg-brand hover:bg-brand-dark disabled:opacity-50 disabled:hover:bg-brand text-white font-bold py-2.5 rounded-btn shadow-flat transition-colors text-text-body cursor-pointer text-center"
         >
-          Confirmar
+          {{ isSubmitting ? 'Confirmando...' : 'Confirmar' }}
         </button>
       </div>
 
