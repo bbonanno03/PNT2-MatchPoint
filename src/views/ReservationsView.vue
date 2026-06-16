@@ -1,7 +1,6 @@
 <template>
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     
-    <!-- Header -->
     <div class="mb-8">
       <h1 class="text-title font-black text-text-main font-sans tracking-tight">
         Mis Reservas
@@ -11,7 +10,6 @@
       </p>
     </div>
 
-    <!-- Tabs -->
     <div class="flex gap-4 mb-6 border-b border-surface-border">
       <button
         @click="activeTab = 'active'"
@@ -36,19 +34,18 @@
         Canceladas ({{ reservationsStore.myCancelledReservations.length }})
       </button>
       <button
-        @click="activeTab = 'all'"
+        @click="activeTab = 'history'"
         :class="[
           'px-4 py-2 text-text-body font-semibold border-b-2 transition-colors',
-          activeTab === 'all'
+          activeTab === 'history'
             ? 'border-brand text-brand'
             : 'border-transparent text-text-muted hover:text-text-main'
         ]"
       >
-        Historial ({{ historicalReservations.length }})
+        Historial ({{ reservationsStore.myHistoryReservations.length }})
       </button>
     </div>
 
-    <!-- Empty State -->
     <div 
       v-if="!reservationsStore.myReservations.length" 
       class="bg-surface-card border border-surface-border rounded-card p-12 text-center shadow-flat"
@@ -66,7 +63,6 @@
       </router-link>
     </div>
 
-    <!-- Active Reservations Tab -->
     <div v-else-if="activeTab === 'active'" class="space-y-4">
       <div 
         v-if="!reservationsStore.myActiveReservations.length"
@@ -82,7 +78,6 @@
       />
     </div>
 
-    <!-- Cancelled Reservations Tab -->
     <div v-else-if="activeTab === 'cancelled'" class="space-y-4">
       <div 
         v-if="!reservationsStore.myCancelledReservations.length"
@@ -98,23 +93,21 @@
       />
     </div>
 
-    <!-- All Reservations Tab (History) -->
-    <div v-else-if="activeTab === 'all'" class="space-y-4">
+    <div v-else-if="activeTab === 'history'" class="space-y-4">
       <div 
-        v-if="!historicalReservations.length"
+        v-if="!reservationsStore.myHistoryReservations.length"
         class="bg-surface-card border border-surface-border rounded-card p-8 text-center"
       >
         <p class="text-text-body text-text-muted">No hay reservas en el historial.</p>
       </div>
       <ReservationCard
-        v-for="reservation in historicalReservations"
+        v-for="reservation in reservationsStore.myHistoryReservations"
         :key="reservation.id"
         :reservation="reservation"
-        :is-cancelled="true"
+        :is-cancelled="false"
       />
     </div>
 
-    <!-- Confirmation Modal -->
     <div
       v-if="pendingCancel"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/25 px-4"
@@ -147,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useReservationsStore } from '../stores/reservations'
 import { useAuthStore } from '../stores/auth'
 import { useAlertsStore } from '../stores/alerts'
@@ -159,26 +152,6 @@ const alertsStore = useAlertsStore()
 const activeTab = ref('active')
 const pendingCancel = ref(null)
 
-const todayDate = new Date().toISOString().split('T')[0]
-
-const sortedReservations = computed(() => {
-  return [...reservationsStore.myReservations].sort((a, b) => {
-    const dateA = new Date(a.reservation_date || a.date)
-    const dateB = new Date(b.reservation_date || b.date)
-    return dateB - dateA
-  })
-})
-
-const historicalReservations = computed(() => {
-  return sortedReservations.value.filter((reservation) => {
-    const reservationDate = reservation.reservation_date || reservation.date
-    return (
-      reservation.status === 'cancelled' ||
-      reservationDate < todayDate
-    )
-  })
-})
-
 onMounted(async () => {
   if (authStore.user) {
     await reservationsStore.fetchUserReservations()
@@ -187,6 +160,13 @@ onMounted(async () => {
 
 function formatDate(dateStr) {
   if (!dateStr) return ''
+
+  if (dateStr.includes('-') && !dateStr.includes('T')) {
+    const [year, month, day] = dateStr.split('-')
+    const date = new Date(year, month - 1, day)
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+    return date.toLocaleDateString('es-AR', options)
+  }
 
   const date = new Date(dateStr)
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }

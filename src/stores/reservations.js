@@ -2,6 +2,32 @@ import { defineStore } from "pinia";
 import { useAuthStore } from "./auth";
 import * as reservationsService from "../services/reservationsService";
 
+function checkIfExpired(reservationDate, endTime) {
+  if (!reservationDate || !endTime) return false;
+
+  const now = new Date();
+  const nowYear = now.getFullYear();
+  const nowMonth = String(now.getMonth() + 1).padStart(2, "0");
+  const nowDay = String(now.getDate()).padStart(2, "0");
+  const nowHours = String(now.getHours()).padStart(2, "0");
+  const nowMinutes = String(now.getMinutes()).padStart(2, "0");
+
+  const currentNumeric = Number(
+    `${nowYear}${nowMonth}${nowDay}${nowHours}${nowMinutes}`,
+  );
+
+  const [resYear, resMonth, resDay] = reservationDate.split("-");
+  const timeParts = endTime.split(":");
+  const resHours = String(timeParts[0]).padStart(2, "0");
+  const resMinutes = String(timeParts[1]).padStart(2, "0");
+
+  const reservationNumeric = Number(
+    `${resYear}${resMonth}${resDay}${resHours}${resMinutes}`,
+  );
+
+  return reservationNumeric <= currentNumeric;
+}
+
 export const useReservationsStore = defineStore("reservations", {
   state: () => ({
     reservations: [],
@@ -10,47 +36,38 @@ export const useReservationsStore = defineStore("reservations", {
   }),
 
   getters: {
-    myReservations: (state) => {
-      const authStore = useAuthStore();
-      if (!authStore.user) return [];
-      return state.reservations.filter(
-        (reservation) => reservation.user_id === authStore.user.id,
-      );
-    },
-
     myActiveReservations: (state) => {
-      const authStore = useAuthStore();
-      if (!authStore.user) return [];
-      return state.reservations.filter(
-        (reservation) =>
-          reservation.user_id === authStore.user.id &&
-          reservation.status === "active",
-      );
+      return (state.reservations || []).filter((res) => {
+        const status = res.status?.toLowerCase();
+        if (status !== "active" && status !== "confirmed") return false;
+
+        const rDate = res.reservation_date || res.date;
+        const rTime = res.end_time || res.endTime;
+
+        return !checkIfExpired(rDate, rTime);
+      });
     },
 
     myCancelledReservations: (state) => {
-      const authStore = useAuthStore();
-      if (!authStore.user) return [];
-      return state.reservations.filter(
-        (reservation) =>
-          reservation.user_id === authStore.user.id &&
-          reservation.status === "cancelled",
+      return (state.reservations || []).filter(
+        (res) => res.status?.toLowerCase() === "cancelled",
       );
     },
 
-    activeReservations: (state) =>
-      state.reservations.filter(
-        (reservation) => reservation.status === "active",
-      ),
+    myHistoryReservations: (state) => {
+      return (state.reservations || []).filter((res) => {
+        const status = res.status?.toLowerCase();
+        if (status === "cancelled") return true;
 
-    activeReservationCount: (state) => {
-      const authStore = useAuthStore();
-      if (!authStore.user) return 0;
-      return state.reservations.filter(
-        (reservation) =>
-          reservation.user_id === authStore.user.id &&
-          reservation.status === "active",
-      ).length;
+        const rDate = res.reservation_date || res.date;
+        const rTime = res.end_time || res.endTime;
+
+        return status === "completed" || checkIfExpired(rDate, rTime);
+      });
+    },
+
+    myReservations: (state) => {
+      return state.reservations || [];
     },
   },
 
@@ -96,10 +113,8 @@ export const useReservationsStore = defineStore("reservations", {
     async addReservation(userId, courtId, courtName, clubName, date, time) {
       this.loading = true;
       this.error = null;
-
       try {
         const endTime = this._calculateEndTime(time);
-
         const newReservation = await reservationsService.createReservation({
           userId,
           courtId,
@@ -107,8 +122,7 @@ export const useReservationsStore = defineStore("reservations", {
           startTime: time,
           endTime: endTime,
         });
-
-        this.reservations.push(newReservation);
+        await this.fetchUserReservations();
         return newReservation;
       } catch (err) {
         this.error = err.message;
@@ -121,21 +135,13 @@ export const useReservationsStore = defineStore("reservations", {
     async cancelReservation(reservationId, date, time) {
       this.loading = true;
       this.error = null;
-
       try {
         const result = await reservationsService.cancelReservation(
           reservationId,
           date,
           time,
         );
-
-        const index = this.reservations.findIndex(
-          (r) => r.id === reservationId,
-        );
-        if (index !== -1) {
-          this.reservations[index].status = "cancelled";
-        }
-
+        await this.fetchUserReservations();
         return result;
       } catch (err) {
         this.error = err.message;
@@ -152,10 +158,7 @@ export const useReservationsStore = defineStore("reservations", {
     _calculateEndTime(startTime) {
       const [hours, minutes] = startTime.split(":").map(Number);
       const endHours = (hours + 1) % 24;
-      return `${String(endHours).padStart(2, "0")}:${String(minutes).padStart(
-        2,
-        "0",
-      )}`;
+      return `${String(endHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     },
   },
 });
