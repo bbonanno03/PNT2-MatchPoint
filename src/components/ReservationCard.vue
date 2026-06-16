@@ -1,7 +1,6 @@
 <template>
   <div class="bg-surface-card border border-surface-border rounded-card shadow-flat p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:shadow-hover transition-all duration-200">
     
-    <!-- Info Section -->
     <div class="flex items-start space-x-4">
       <div class="bg-green-50 text-brand p-3 rounded-btn text-2xl hidden sm:block">
         ⚽
@@ -23,9 +22,7 @@
       </div>
     </div>
 
-    <!-- Status & Actions Section -->
     <div class="flex items-center justify-between md:justify-end md:space-x-6 pt-3 md:pt-0 border-t md:border-t-0 border-surface-border">
-      <!-- Status Badge -->
       <div>
         <span 
           v-if="reservation.status === 'active'" 
@@ -53,7 +50,6 @@
         </span>
       </div>
 
-      <!-- Cancel Button -->
       <button 
         v-if="!isCancelled && reservation.status !== 'cancelled'"
         @click="$emit('cancel', reservation.id)"

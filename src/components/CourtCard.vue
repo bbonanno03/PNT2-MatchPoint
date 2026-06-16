@@ -6,7 +6,6 @@
         <h2 class="text-card-title font-bold text-text-main leading-tight">
           {{ court.name }}
         </h2>
-        <!-- 🌟 CORRECCIÓN: Ahora usa court.sport que viene real de Supabase -->
         <span class="px-2.5 py-0.5 text-text-small font-bold rounded-full bg-green-50 text-status-success border border-green-100">
           {{ court.sport }}
         </span>
@@ -14,9 +13,6 @@
       
       <p class="text-text-body text-text-muted">
         Club: <span class="font-semibold text-text-main">{{ court.club }}</span>
-      </p>
-      <p class="text-text-body text-text-muted">
-        Deporte: <span class="font-semibold text-text-main">{{ court.sport }}</span>
       </p>
       <p class="text-text-body text-brand font-bold mt-2 text-lg">
         ${{ court.price }} <span class="text-text-small font-medium text-text-muted">/ hora</span>

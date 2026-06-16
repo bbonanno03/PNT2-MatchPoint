@@ -7,7 +7,7 @@
           Panel de Gestión de Canchas
         </h1>
         <p class="text-text-body text-text-muted mt-1">
-          Alta, modificación y baja de canchas sincronizadas con Supabase.
+          Alta, modificación y baja de canchas.
         </p>
       </div>
       <button 
@@ -20,7 +20,7 @@
 
     <!-- Spinner de carga general -->
     <div v-if="courtsStore.loading && !courtsStore.courts.length" class="text-center py-12">
-      <p class="text-text-muted font-semibold animate-pulse">Cargando canchas desde el servidor...</p>
+      <p class="text-text-muted font-semibold animate-pulse">Cargando canchas...</p>
     </div>
 
     <!-- Tabla de Canchas para el Admin -->
@@ -69,7 +69,7 @@
         <form @submit.prevent="handleSave" class="space-y-4">
           <div>
             <label class="block text-text-small font-bold text-text-main mb-1">Nombre de la cancha</label>
-            <input v-model="form.name" type="text" required placeholder="Ej: Cancha de Pádel Blindex 3" class="w-full text-text-body border border-surface-border rounded-btn px-3 py-2 bg-surface-bg" />
+            <input v-model="form.name" type="text" required placeholder="Nombre de la cancha" class="w-full text-text-body border border-surface-border rounded-btn px-3 py-2 bg-surface-bg" />
           </div>
 
           <div>
@@ -84,12 +84,12 @@
 
           <div>
             <label class="block text-text-small font-bold text-text-main mb-1">Club</label>
-            <input v-model="form.club" type="text" required class="w-full text-text-body border border-surface-border rounded-btn px-3 py-2 bg-surface-bg" />
+            <input v-model="form.club" type="text" required placeholder="Nombre del club" class="w-full text-text-body border border-surface-border rounded-btn px-3 py-2 bg-surface-bg" />
           </div>
 
           <div>
             <label class="block text-text-small font-bold text-text-main mb-1">Ubicación</label>
-            <input v-model="form.location" type="text" required placeholder="Ej: Ramos Mejía" class="w-full text-text-body border border-surface-border rounded-btn px-3 py-2 bg-surface-bg" />
+            <input v-model="form.location" type="text" required placeholder="Ubicación de la cancha" class="w-full text-text-body border border-surface-border rounded-btn px-3 py-2 bg-surface-bg" />
           </div>
 
           <div>
@@ -130,7 +130,7 @@ const currentId = ref(null)
 const form = ref({
   name: '',
   sport: '',
-  club: 'MatchPoint Club',
+  club: '',
   location: '',
   price: 0,
   active: true
@@ -142,7 +142,7 @@ function openModalForCreate() {
   form.value = {
     name: '',
     sport: '',
-    club: 'MatchPoint Club',
+    club: '',
     location: '',
     price: 0,
     active: true
@@ -161,10 +161,10 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await courtsStore.updateCourt(currentId.value, form.value)
-      alertsStore.showAlert('Cancha modificada correctamente en Supabase.', 'success')
+      alertsStore.showAlert('Cancha modificada correctamente.', 'success')
     } else {
       await courtsStore.addCourt(form.value)
-      alertsStore.showAlert('Cancha dada de alta correctamente en Supabase.', 'success')
+      alertsStore.showAlert('Cancha dada de alta correctamente.', 'success')
     }
     showModal.value = false
   } catch (err) {
@@ -173,10 +173,10 @@ async function handleSave() {
 }
 
 async function handleDelete(id) {
-  if (confirm('¿De verdad querés eliminar esta cancha de Supabase? Se borrará definitivamente.')) {
+  if (confirm('¿De verdad querés eliminar esta cancha? Se borrará definitivamente.')) {
     try {
       await courtsStore.deleteCourt(id)
-      alertsStore.showAlert('Cancha eliminada con éxito de la base de datos.', 'success')
+      alertsStore.showAlert('Cancha eliminada con éxito.', 'success')
     } catch (err) {
       alertsStore.showAlert('Error al eliminar la cancha.', 'error')
     }
