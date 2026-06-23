@@ -9,6 +9,7 @@ import PoliciesView from "../views/PoliciesView.vue";
 import AdminCourtsView from "../views/AdminCourtsView.vue";
 import MetricsView from "../views/MetricsView.vue";
 import AdminUsersView from "../views/AdminUsersView.vue";
+import ProfileView from "../views/ProfileView.vue";
 
 const routes = [
   { path: "/", redirect: "/canchas" },
@@ -17,6 +18,7 @@ const routes = [
   { path: "/canchas", component: CourtsView },
   { path: "/reservas", component: ReservationsView },
   { path: "/politicas", component: PoliciesView },
+  { path: "/perfil", component: ProfileView },
   {
     path: "/admin/canchas",
     component: AdminCourtsView,

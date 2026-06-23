@@ -46,6 +46,15 @@ function handleLogout() {
             >
               Políticas
             </router-link>
+
+            <router-link 
+              v-if="authStore.isAuthenticated"
+              to="/perfil" 
+              class="px-3 py-2 rounded-btn text-text-body font-medium text-text-muted hover:text-brand hover:bg-gray-50 transition-colors"
+              active-class="text-brand bg-green-50 font-semibold"
+            >
+            Mi Perfil
+            </router-link>
           </div>
         </div>
 
