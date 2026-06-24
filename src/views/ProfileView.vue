@@ -50,6 +50,13 @@
         Guardar cambios
       </button>
 
+      <router-link
+        to="/cambiar-password"
+        class="inline-block ml-4 text-green-600 font-semibold hover:underline"
+      >
+        Cambiar contraseña
+      </router-link>
+
     </div>
 
   </div>
