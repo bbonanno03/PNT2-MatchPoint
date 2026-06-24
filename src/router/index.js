@@ -10,6 +10,7 @@ import AdminCourtsView from "../views/AdminCourtsView.vue";
 import MetricsView from "../views/MetricsView.vue";
 import AdminUsersView from "../views/AdminUsersView.vue";
 import ProfileView from "../views/ProfileView.vue";
+import ChangePasswordView from "../views/ChangePasswordView.vue";
 
 const routes = [
   { path: "/", redirect: "/canchas" },
@@ -19,6 +20,7 @@ const routes = [
   { path: "/reservas", component: ReservationsView },
   { path: "/politicas", component: PoliciesView },
   { path: "/perfil", component: ProfileView },
+  { path: "/cambiar-password", component: ChangePasswordView },
   {
     path: "/admin/canchas",
     component: AdminCourtsView,
