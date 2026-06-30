@@ -40,7 +40,13 @@ export const useCourtsStore = defineStore("courts", {
       this.error = null;
 
       try {
-        const { data, error } = await supabase.from("courts").select("*");
+        // Traemos las canchas embebiendo sus reviews asociadas
+        const { data, error } = await supabase.from("courts").select(`
+            *,
+            reviews (
+              rating
+            )
+          `);
 
         if (error) {
           console.error("Error de Supabase:", error.message, error.code);
@@ -48,11 +54,58 @@ export const useCourtsStore = defineStore("courts", {
           return;
         }
 
-        console.log("Datos recibidos de Supabase:", data);
-        this.courts = data || [];
+        // Mapeamos los datos para inyectar el promedio y el total calculados dinámicamente
+        const courtsWithRatings = (data || []).map((court) => {
+          const reviews = court.reviews || [];
+          const total_reviews = reviews.length;
+
+          const average_rating =
+            total_reviews > 0
+              ? reviews.reduce((sum, r) => sum + r.rating, 0) / total_reviews
+              : 0;
+
+          return {
+            ...court,
+            total_reviews,
+            average_rating,
+          };
+        });
+
+        console.log("Datos procesados con calificaciones:", courtsWithRatings);
+        this.courts = courtsWithRatings;
       } catch (err) {
         console.error("❌ Error al conectar a Supabase:", err.message);
         this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async addCourtReview(userId, courtId, rating, comment) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const { error } = await supabase.from("reviews").insert([
+          {
+            user_id: userId,
+            court_id: courtId,
+            rating: Number(rating),
+            comment: comment || null,
+          },
+        ]);
+
+        if (error) {
+          console.error("Error al añadir reseña:", error.message);
+          this.error = error.message;
+          throw new Error(error.message);
+        }
+
+        // Volvemos a pedir las canchas para que se recalculen los promedios reales
+        await this.fetchCourts();
+      } catch (err) {
+        console.error("Error inesperado al calificar:", err.message);
+        this.error = err.message;
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -74,7 +127,7 @@ export const useCourtsStore = defineStore("courts", {
               active: true,
             },
           ])
-          .select(); // El .select() es clave para que devuelva el objeto creado con su ID real de la BD
+          .select();
 
         if (error) {
           console.error("Error al añadir cancha:", error.message);
@@ -83,7 +136,12 @@ export const useCourtsStore = defineStore("courts", {
         }
 
         if (data && data.length > 0) {
-          this.courts.push(data[0]);
+          // Inicializamos los contadores en 0 para la nueva cancha insertada localmente
+          this.courts.push({
+            ...data[0],
+            total_reviews: 0,
+            average_rating: 0,
+          });
         }
       } catch (err) {
         console.error("Error inesperado al añadir:", err.message);
@@ -104,7 +162,7 @@ export const useCourtsStore = defineStore("courts", {
             price: Number(updatedData.price),
           })
           .eq("id", id)
-          .select(); // El .select() es clave para obtener el objeto actualizado con su ID real de la BD
+          .select();
 
         if (error) {
           console.error(" Error al actualizar cancha:", error.message);
@@ -116,7 +174,11 @@ export const useCourtsStore = defineStore("courts", {
           console.log("Cancha actualizada con éxito:", data[0]);
           const index = this.courts.findIndex((c) => c.id === id);
           if (index !== -1) {
-            this.courts[index] = data[0]; // Sincronizamos el estado local
+            // Mantenemos las propiedades de reviews calculadas que ya teníamos localmente
+            this.courts[index] = {
+              ...this.courts[index],
+              ...data[0],
+            };
           }
         }
       } catch (err) {
@@ -139,7 +201,7 @@ export const useCourtsStore = defineStore("courts", {
           return;
         }
 
-        this.courts = this.courts.filter((c) => c.id !== id); // Filtramos localmente para removerla de la vista
+        this.courts = this.courts.filter((c) => c.id !== id);
       } catch (err) {
         console.error("Error inesperado al eliminar:", err.message);
         this.error = err.message;
